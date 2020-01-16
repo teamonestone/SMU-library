@@ -40,11 +40,50 @@ namespace smu
     ///////////
 	// enums //
 	///////////
+    /**
+	 * @enum SensorModel
+	 * 
+	 * @brief Enum that represents the differnet supported sensor models.
+	 */ 
+	enum SensorModel : uint8_t {
+        NO_SENSOR = 0x00,
 
+        SRF08 = 0x01
+    };
     
     /////////////
     // classes //
     /////////////
+
+    /**
+     * @class SensorMaping
+     * 
+     * @brief Represents the SensorMaping.
+     */
+    class SensorMaping {
+        // Begin PUBLIC ------------------------------------------------------------------
+        public:
+
+            // Constructors
+
+            SensorMaping();
+            SensorMaping(SensorModel sensModel, uint8_t sensPort);
+            ~SensorMaping();
+
+            // variables
+            
+            SensorModel sensorModel;
+            uint8_t sensorPort;
+            uint8_t sensorNoOnSMU;
+
+
+        // End PUBLIC --------------------------------------------------------------------
+
+        // Begin PRIVATE -----------------------------------------------------------------
+        private:
+
+        // End PRIVATE -------------------------------------------------------------------
+    };
 
     /**
      * @class SMU
@@ -65,7 +104,7 @@ namespace smu
 
 
             // Sensors
-
+            
 
 
             // util

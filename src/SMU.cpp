@@ -21,12 +21,56 @@
 #define _SMU_LIB_VERSION 100
 
 // used namespaces
+using namespace smu;
 using namespace smu_com_backend;
 
 
 ///////////////////////
 // class construcots //
 ///////////////////////
+
+/**
+ * @brief Default Constructor of the SensorMaping class.
+ * 
+ */
+SensorMaping::SensorMaping() {
+    sensorModel = SensorModel::NO_SENSOR;
+    sensorPort = -1;
+    sensorNoOnSMU = -1;
+}
+
+/**
+ * @brief Constructor of the SensorMaping class.
+ * 
+ * @param sensModel The model of the sensor.
+ * @param sensPort The port of the sensor.
+ */
+SensorMaping::SensorMaping(SensorModel sensModel, int8_t sensPort) {
+    sensorModel = SensorModel::sensModel;
+    sensorPort = sensPort;
+    sensorNoOnSMU = -1;
+}
+
+/**
+ * @brief Constructor of the SensorMaping class.
+ * 
+ * @param sensModel The model of the sensor.
+ * @param sensPort The port of the sensor.
+ * @param sensNoOnSMU The internal number of the sensor on the SMU.
+ */
+SensorMaping::SensorMaping(SensorModel sensModel, int8_t sensPort, uint8_t sensNoOnSMU) {
+    sensorModel = SensorModel::sensModel;
+    sensorPort = sensPort;
+    sensorNoOnSMU = sensNoOnSMU;
+}
+
+/**
+ * @brief Default Destructor of the SensorMaping class.
+ *  
+ */
+SensorMaping::~SensorMaping() {
+
+}
 
 /**
  * @brief Default Constructor of the SMU class.
