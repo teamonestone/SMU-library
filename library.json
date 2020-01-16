@@ -1,0 +1,36 @@
+{
+    "name": "SMU-library",
+    "keywords": "smu, arduino, mega, i2c, sensors, master, communication, serial",
+    "description": "Arduino library to use the 'Universal-I2C-Sensor-Master-Unit' (SMU).",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/teamonestone/SMU-library.git"
+    },
+    "authors":
+    [
+      {
+        "name": "Jonas Merkle [JJM]",
+        "email": "jonas.merkle@tam-onestone.net",
+		"url": "http://jjm.one"
+      },
+      {
+        "name": "Dominik Authaler",
+        "email": "dominik.authaler@tam-onestone.net"
+      },
+      {
+        "name": "Team Onestone",
+        "email": "info@team-onestone.net",
+        "url": "http://team-onestone.net",
+        "maintainer": true
+      }
+    ],
+    "dependencies":
+    {
+      "name": "SMU-Communication-Backend.h",
+      "frameworks": "arduino"
+    },
+    "version": "1.0.0",
+    "frameworks": "arduino",
+    "platforms": "*"
+  }
