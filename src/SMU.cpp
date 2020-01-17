@@ -120,7 +120,7 @@ bool SMU::initSensor(SensorMapping *sensMapping, SensorModel sensModel, uint8_t 
 
     // setup message
     msg.setMsgType(MessageType::INIT_SENSOR);
-    msg.setPayload(payload, 2)
+    msg.setPayload(payload, 2);
 
     // send message
     sendMessage(&msg);
@@ -166,19 +166,46 @@ bool SMU::initSensor(SensorMapping *sensMapping, SensorModel sensModel, uint8_t 
  * @return True on success, else false.
  */
 bool SMU::setSensorActivationStatus(SensorMapping *sensMapping, bool activationStatus) {
-    Message msg;
     
+    // local variables
+    Message msg;
     uint8_t payload[25] = {0};
-    payload[0] = static_cast<uint8_t>(sensModel);
-    payload[1] = sensPort;
-    msg.setMsgType(MessageType::INIT_SENSOR);
-    msg.setPayload(payload, 2)
 
+    // setup payloads
+    payload[0] = sensMapping->sensorNoOnSMU;
+    payload[1] = static_cast<uint8_t>(activationStatus);
+
+    // setup message
+    msg.setMsgType(MessageType::S_SENS_ACTIVE);
+    msg.setPayload(payload, 2);
+
+    // send message
     sendMessage(&msg);
 
+    // wait for smu to process the request
     mdelay(_SMU_REQUEST_DELAY);
-
     
+    // clear the message object
+    msg.clear();
+
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::S_SENS_ACTIVE) {
+        return false;
+    }
+
+    if (msg.getPayload[1] == 0) {
+        return false;
+    }
+
+    // evaluating received message finished ------------------------------------------------------
 
     return true;
 }
@@ -191,8 +218,50 @@ bool SMU::setSensorActivationStatus(SensorMapping *sensMapping, bool activationS
  * 
  * @return True on success, else false.
  */
-bool SMU::getSensorActivationStatus(SensorMapping *SensorMapping, bool *activationStatus) {
+bool SMU::getSensorActivationStatus(SensorMapping *sensorMapping, bool *activationStatus) {
 
+    // local variables
+    Message msg;
+    uint8_t payload[25] = {0};
+
+    // setup payloads
+    payload[0] = sensorMapping->sensorNoOnSMU;
+
+    // setup message
+    msg.setMsgType(MessageType::G_SENS_ACTIVE);
+    msg.setPayload(payload, 1);
+
+    // send message
+    sendMessage(&msg);
+
+    // wait for smu to process the request
+    mdelay(_SMU_REQUEST_DELAY);
+    
+    // clear the message object
+    msg.clear();
+
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::G_SENS_ACTIVE) {
+        return false;
+    }
+
+    if (msg.getPayload[1] == 0) {
+        return false;
+    }
+
+    activationStatus = static_cast<bool>(getPayload[2]);
+
+    // evaluating received message finished ------------------------------------------------------
+
+    return true;
 }
 
 /**
@@ -215,47 +284,94 @@ bool SMU::getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReadi
  * @return True on success, else false.
  */
 bool SMU::manUpdateSensorRadings(SensorMapping *sensMapping) {
-    Message msg;
     
-    uint8_t payload[] = {static_cast<uint8_t>(sensModel), sensPort};
-    msg.setMsgType(MessageType::INIT_SENSOR);
-    msg.setPayload(payload, 2)
+    // local variables
+    Message msg;
+    uint8_t payload[25] = {0};
 
+    // setup payloads
+    payload[0] = sensMapping->sensorNoOnSMU;
+
+    // setup message
+    msg.setMsgType(MessageType::MAN_UPDATE);
+    msg.setPayload(payload, 1);
+
+    // send message
     sendMessage(&msg);
 
-    return true;
+    // wait for smu to process the request
+    mdelay(_SMU_REQUEST_DELAY);
+    
+    // clear the message object
+    msg.clear();
+
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::MAN_UPDATE) {
+        return false;
+    }
+
+    if (msg.getPayload[1] == 0) {
+        return false;
+    }
+
+    // evaluating received message finished ------------------------------------------------------
+
+    return true; 
 }
 
 /**
- * @brief Enable the automatic update of the sensor vaules at the SMU.
+ * @brief Enable or Disables the automatic update of the sensor vaules at the SMU.
  * 
  * @return True on success, else false.
  */
-bool SMU::enableSensorAutoupdate() {
-    Message msg;
+bool SMU::setSensorAutoupdateActivationStatus(bool status) {}
     
-    uint8_t payload[] = {static_cast<uint8_t>(sensModel), sensPort};
-    msg.setMsgType(MessageType::INIT_SENSOR);
-    msg.setPayload(payload, 2)
+    // local variables
+    Message msg;
+    uint8_t payload[25] = {0};
 
+    // setup payloads
+    payload[0] = static_cast<uint8_t>(status);
+
+    // setup message
+    msg.setMsgType(MessageType::S_AUTO_UPDATE);
+    msg.setPayload(payload, 1);
+
+    // send message
     sendMessage(&msg);
 
-    return true;
-}
-
-/**
- * @brief Disables the automaitc update of the sensor values at the SMU.
- * 
- * @return True on success, else false.
- */
-bool SMU::disableSensorAutoUpdate() {
-    Message msg;
+    // wait for smu to process the request
+    mdelay(_SMU_REQUEST_DELAY);
     
-    uint8_t payload[] = {static_cast<uint8_t>(sensModel), sensPort};
-    msg.setMsgType(MessageType::INIT_SENSOR);
-    msg.setPayload(payload, 2)
+    // clear the message object
+    msg.clear();
 
-    sendMessage(&msg);
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::S_AUTO_UPDATE) {
+        return false;
+    }
+
+    if (msg.getPayload[1] == 0) {
+        return false;
+    }
+
+    // evaluating received message finished ------------------------------------------------------
 
     return true;
 }
@@ -268,7 +384,7 @@ bool SMU::disableSensorAutoUpdate() {
  * @return True on success, else false.
  */
 bool SMU::getSMUComBackendVersion(uint16_t *version) {
-
+    return false;
 }
 
 /**
@@ -279,7 +395,7 @@ bool SMU::getSMUComBackendVersion(uint16_t *version) {
  * @return True on success, else false.
  */
 bool SMU::getSMUFirmwareVersion(uint16_t *version) {
-
+    return false;
 }
 
 /**
@@ -290,7 +406,7 @@ bool SMU::getSMUFirmwareVersion(uint16_t *version) {
  * @return True on success, else false.
  */
 bool SMU::getSMULastComError(uint8_t *error) {
-
+    return false;
 }
 
 /**
@@ -301,7 +417,7 @@ bool SMU::getSMULastComError(uint8_t *error) {
  * @return True on success, else false.
  */
 bool SMU::getSUMLastSystemError(uint8_t *error) {
-
+    return false;
 }
 
 /**
@@ -310,7 +426,48 @@ bool SMU::getSUMLastSystemError(uint8_t *error) {
  * @return True on success, else false.
  */
 bool SMU::ping() {
+    
+    // local variables
+    Message msg;
+    uint8_t payload[25] = {0};
 
+    // setup payloads
+    uint8_t rVal = random(0, 256);
+    payload[0] = rVal;
+
+    // setup message
+    msg.setMsgType(MessageType::PONG);
+    msg.setPayload(payload, 1);
+
+    // send message
+    sendMessage(&msg);
+
+    // wait for smu to process the request
+    mdelay(_SMU_REQUEST_DELAY);
+    
+    // clear the message object
+    msg.clear();
+
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::PONG) {
+        return false;
+    }
+
+    if (msg.getPayload[1] != rVal) {
+        return false;
+    }
+
+    // evaluating received message finished ------------------------------------------------------
+
+    return true; 
 }
 
 

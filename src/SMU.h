@@ -126,13 +126,12 @@ namespace smu
             // sensor
             bool initSensor(SensorMapping *sensMapping, SensorModel sensModel, uint8_t sensPort);
             bool setSensorActivationStatus(SensorMapping *sensMapping, bool activationStatus);
-            bool getSensorActivationStatus(SensorMapping *SensorMapping, bool *activationStatus);
+            bool getSensorActivationStatus(SensorMapping *sensorMapping, bool *activationStatus);
             bool getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReading);
             bool manUpdateSensorRadings(SensorMapping *sensMapping);
 
             // auto update
-            bool enableSensorAutoupdate();
-            bool disableSensorAutoUpdate();
+            bool setSensorAutoupdateActivationStatus(bool status);
             
             // smu
             bool getSMUComBackendVersion(uint16_t *version);
