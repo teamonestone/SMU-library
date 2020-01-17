@@ -40,16 +40,39 @@ namespace smu
     ///////////
 	// enums //
 	///////////
+
     /**
 	 * @enum SensorModel
 	 * 
 	 * @brief Enum that represents the differnet supported sensor models.
 	 */ 
-	enum SensorModel : uint8_t {
+	enum SensorModel : int8_t {
+        SENSOR_ERROR = -1,
+
         NO_SENSOR = 0x00,
 
         SRF08 = 0x01
     };
+
+    /////////////
+    // structs //
+    /////////////
+
+    /**
+     * @struct SensorReading
+     * 
+     * @brief Struct that represens a sensor reading.
+     */
+    typedef struct SensorReading
+    {
+        float val1;
+        float val2;
+        float val3;
+        float val4;
+
+        int16_t status;
+    };
+    
     
     /////////////
     // classes //
@@ -60,21 +83,22 @@ namespace smu
      * 
      * @brief Represents the SensorMaping.
      */
-    class SensorMaping {
+    class SensorMapping {
         // Begin PUBLIC ------------------------------------------------------------------
         public:
 
             // Constructors
 
-            SensorMaping();
-            SensorMaping(SensorModel sensModel, uint8_t sensPort);
-            ~SensorMaping();
+            SensorMapping();
+            SensorMapping(SensorModel sensModel, int8_t sensPort);
+            SensorMapping(SensorModel sensModel, int8_t sensPort, int8_t sensNoOnSMU);
+            ~SensorMapping();
 
             // variables
             
             SensorModel sensorModel;
-            uint8_t sensorPort;
-            uint8_t sensorNoOnSMU;
+            int8_t sensorPort;
+            int8_t sensorNoOnSMU;
 
 
         // End PUBLIC --------------------------------------------------------------------
@@ -99,16 +123,25 @@ namespace smu
             SMU();
             ~SMU();
 
+            // sensor
+            bool initSensor(SensorMapping *sensMapping, SensorModel sensModel, uint8_t sensPort);
+            bool setSensorActivationStatus(SensorMapping *sensMapping, bool activationStatus);
+            bool getSensorActivationStatus(SensorMapping *SensorMapping, bool *activationStatus);
+            bool getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReading);
+            bool manUpdateSensorRadings(SensorMapping *sensMapping);
 
-            // Setter
-
-
-            // Sensors
+            // auto update
+            bool enableSensorAutoupdate();
+            bool disableSensorAutoUpdate();
             
+            // smu
+            bool getSMUComBackendVersion(uint16_t *version);
+            bool getSMUFirmwareVersion(uint16_t *version);
 
+            bool getSMULastComError(uint8_t *error);
+            bool getSUMLastSystemError(uint8_t *error);
 
-            // util
-            uint16_t getVersion();
+            bool ping(); 
 
         // End PUBLIC --------------------------------------------------------------------
 
@@ -117,5 +150,12 @@ namespace smu
 
         // End PRIVATE -------------------------------------------------------------------
     };
+
+
+    ///////////////
+	// functions //
+	///////////////
+
+    uint16_t getVersion();
 }
 #endif

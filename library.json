@@ -26,10 +26,20 @@
       }
     ],
     "dependencies":
-    {
-      "name": "SMU-Communication-Backend.h",
-      "frameworks": "arduino"
-    },
+    [
+      {
+        "name": "SMU-Communication-Backend.h",
+        "frameworks": "arduino"
+      },
+      {
+        "name": "arduino_util.h",
+        "frameworks": "arduino"
+      },
+      {
+        "name": "mdelay.h",
+        "frameworks": "arduino"
+      }
+    ],
     "version": "1.0.0",
     "frameworks": "arduino",
     "platforms": "*"
