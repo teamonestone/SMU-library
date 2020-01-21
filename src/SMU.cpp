@@ -273,7 +273,68 @@ bool SMU::getSensorActivationStatus(SensorMapping *sensorMapping, bool *activati
  * @return True on success, else false.
  */
 bool SMU::getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReading) {
+    // local variables
+    Message msg;
+    uint8_t payload[25] = {0};
 
+    // setup payloads
+    payload[0] = sensorMapping->sensorNoOnSMU;
+
+    // setup message
+    msg.setMsgType(MessageType::READ_SENSOR);
+    msg.setPayload(payload, 1);
+
+    // send message
+    sendMessage(&msg);
+
+    // wait for smu to process the request
+    mdelay(_SMU_REQUEST_DELAY);
+    
+    // clear the message object
+    msg.clear();
+
+    // read received message
+    readNextMessage(&msg);
+
+    // starting evaluating received message ------------------------------------------------------
+
+    if (msg.getMsgType != MessageType::ACK) {
+        return false;
+    }
+
+    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::READ_SENSOR) {
+        return false;
+    }
+
+    if (msg.getPayload[1] == 0) {
+        sensReading->status = false;
+        return false;
+    }
+
+    // check if at least n*4 bytes were received (to re-build a float value)
+    if (((msg.getPayloadSize - 2) % 4) != 0) {
+        return false;
+    }
+
+    // calc how many floats have been send
+    uint8_t numberOfFloats = ((msg.getPayloadSize - 2) / 4);
+
+    for (uint8_t i = 0; i < numberOfFloats; i++) {
+        uint8_t floatCalcIn[4] = {0};
+
+        floatCalcIn[0] = msg.getPayload[2 + (i*4)];
+        floatCalcIn[1] = msg.getPayload[3 + (i*4)];
+        floatCalcIn[2] = msg.getPayload[4 + (i*4)];
+        floatCalcIn[3] = msg.getPayload[5 + (i*4)];
+
+        convBytesTofloat(floatCalcIn, &(sensReading->values[i]));    
+    }
+
+    sensReading->status = true;
+
+    // evaluating received message finished ------------------------------------------------------
+
+    return true;
 }
 
 /**

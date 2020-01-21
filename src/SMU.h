@@ -65,10 +65,7 @@ namespace smu
      */
     typedef struct SensorReading
     {
-        float val1;
-        float val2;
-        float val3;
-        float val4;
+        float values[4];
 
         int16_t status;
     };
@@ -119,7 +116,6 @@ namespace smu
         public:
 
             // Constructors
-
             SMU();
             ~SMU();
 
