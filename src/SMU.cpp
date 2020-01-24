@@ -15,19 +15,19 @@
 #include "SMU.h"
 
 // additional headers
-#include "SMU-Communication-Backend.h"
-#include "arduino-util.h"
-#include "mdelay.h"
-#include "bit_op.h"
+#include <SMU-Communication-Backend.h>
+#include <arduino-util.h>
+#include <millis_delay.h>
+#include <bit_op.h>
 
 // defines
 #define _SMU_LIB_VERSION 10000
 #define _SMU_REQUEST_DELAY 5
 
 // used namespaces
-using namespace smu;
+using namespace sensor_management_unit;
 using namespace smu_com_backend;
-using namespace arduino_util::mdelay;
+using namespace arduino_util::millis_delay;
 using namespace arduino_util::bit_op;
 
 
@@ -52,7 +52,7 @@ SensorMapping::SensorMapping() {
  * @param sensPort The port of the sensor.
  */
 SensorMapping::SensorMapping(SensorModel sensModel, int8_t sensPort) {
-    sensorModel = SensorModel::sensModel;
+    sensorModel = sensModel;
     sensorPort = sensPort;
     sensorNoOnSMU = -1;
 }
@@ -64,8 +64,8 @@ SensorMapping::SensorMapping(SensorModel sensModel, int8_t sensPort) {
  * @param sensPort The port of the sensor.
  * @param sensNoOnSMU The internal number of the sensor on the SMU.
  */
-SensorMapping::SensorMapping(SensorModel sensModel, int8_t sensPort, uint8_t sensNoOnSMU) {
-    sensorModel = SensorModel::sensModel;
+SensorMapping::SensorMapping(SensorModel sensModel, int8_t sensPort, int8_t sensNoOnSMU) {
+    sensorModel = sensModel;
     sensorPort = sensPort;
     sensorNoOnSMU = sensNoOnSMU;
 }
@@ -136,21 +136,21 @@ bool SMU::initSensor(SensorMapping *sensMapping, SensorModel sensModel, uint8_t 
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::INIT_SENSOR) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::INIT_SENSOR) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         return false;
     }
 
     sensMapping->sensorModel = sensModel;
     sensMapping->sensorPort = sensPort;
-    sensMapping->sensorNoOnSMU = getPayload[2];
+    sensMapping->sensorNoOnSMU = msg.getPayload()[2];
 
     // evaluating received message finished ------------------------------------------------------
 
@@ -176,7 +176,7 @@ bool SMU::setSensorActivationStatus(SensorMapping *sensMapping, bool activationS
     payload[1] = static_cast<uint8_t>(activationStatus);
 
     // setup message
-    msg.setMsgType(MessageType::S_SENS_ACTIVE);
+    msg.setMsgType(MessageType::S_SEN_ACTIVE);
     msg.setPayload(payload, 2);
 
     // send message
@@ -193,15 +193,15 @@ bool SMU::setSensorActivationStatus(SensorMapping *sensMapping, bool activationS
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::S_SENS_ACTIVE) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::S_SEN_ACTIVE) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         return false;
     }
 
@@ -228,7 +228,7 @@ bool SMU::getSensorActivationStatus(SensorMapping *sensorMapping, bool *activati
     payload[0] = sensorMapping->sensorNoOnSMU;
 
     // setup message
-    msg.setMsgType(MessageType::G_SENS_ACTIVE);
+    msg.setMsgType(MessageType::G_SEN_ACTIVE);
     msg.setPayload(payload, 1);
 
     // send message
@@ -245,19 +245,19 @@ bool SMU::getSensorActivationStatus(SensorMapping *sensorMapping, bool *activati
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::G_SENS_ACTIVE) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::G_SEN_ACTIVE) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         return false;
     }
 
-    activationStatus = static_cast<bool>(getPayload[2]);
+    *activationStatus = static_cast<bool>(msg.getPayload()[2]);
 
     // evaluating received message finished ------------------------------------------------------
 
@@ -278,7 +278,7 @@ bool SMU::getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReadi
     uint8_t payload[25] = {0};
 
     // setup payloads
-    payload[0] = sensorMapping->sensorNoOnSMU;
+    payload[0] = sensMapping->sensorNoOnSMU;
 
     // setup message
     msg.setMsgType(MessageType::READ_SENSOR);
@@ -298,34 +298,34 @@ bool SMU::getSensorReadings(SensorMapping *sensMapping, SensorReading *sensReadi
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::READ_SENSOR) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::READ_SENSOR) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         sensReading->status = false;
         return false;
     }
 
     // check if at least n*4 bytes were received (to re-build a float value)
-    if (((msg.getPayloadSize - 2) % 4) != 0) {
+    if (((msg.getPayloadSize() - 2) % 4) != 0) {
         return false;
     }
 
     // calc how many floats have been send
-    uint8_t numberOfFloats = ((msg.getPayloadSize - 2) / 4);
+    uint8_t numberOfFloats = ((msg.getPayloadSize() - 2) / 4);
 
     for (uint8_t i = 0; i < numberOfFloats; i++) {
         uint8_t floatCalcIn[4] = {0};
 
-        floatCalcIn[0] = msg.getPayload[2 + (i*4)];
-        floatCalcIn[1] = msg.getPayload[3 + (i*4)];
-        floatCalcIn[2] = msg.getPayload[4 + (i*4)];
-        floatCalcIn[3] = msg.getPayload[5 + (i*4)];
+        floatCalcIn[0] = msg.getPayload()[2 + (i*4)];
+        floatCalcIn[1] = msg.getPayload()[3 + (i*4)];
+        floatCalcIn[2] = msg.getPayload()[4 + (i*4)];
+        floatCalcIn[3] = msg.getPayload()[5 + (i*4)];
 
         convBytesTofloat(floatCalcIn, &(sensReading->values[i]));    
     }
@@ -371,15 +371,15 @@ bool SMU::manUpdateSensorRadings(SensorMapping *sensMapping) {
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::MAN_UPDATE) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::MAN_UPDATE) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         return false;
     }
 
@@ -393,7 +393,7 @@ bool SMU::manUpdateSensorRadings(SensorMapping *sensMapping) {
  * 
  * @return True on success, else false.
  */
-bool SMU::setSensorAutoupdateActivationStatus(bool status) {}
+bool SMU::setSensorAutoupdateActivationStatus(bool status) {
     
     // local variables
     Message msg;
@@ -420,15 +420,15 @@ bool SMU::setSensorAutoupdateActivationStatus(bool status) {}
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::S_AUTO_UPDATE) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::S_AUTO_UPDATE) {
         return false;
     }
 
-    if (msg.getPayload[1] == 0) {
+    if (msg.getPayload()[1] == 0) {
         return false;
     }
 
@@ -514,15 +514,15 @@ bool SMU::ping() {
 
     // starting evaluating received message ------------------------------------------------------
 
-    if (msg.getMsgType != MessageType::ACK) {
+    if (msg.getMsgType() != MessageType::ACK) {
         return false;
     }
 
-    if (static_cast<MessageType>(msg.getPayload[0]) != MessageType::PONG) {
+    if (static_cast<MessageType>(msg.getPayload()[0]) != MessageType::PONG) {
         return false;
     }
 
-    if (msg.getPayload[1] != rVal) {
+    if (msg.getPayload()[1] != rVal) {
         return false;
     }
 
@@ -541,6 +541,6 @@ bool SMU::ping() {
  * 
  * @retrun the current version of the library.
  */
-uint16_t smu::getVersion() {
+uint16_t sensor_management_unit::getVersion() {
     return _SMU_LIB_VERSION;
 }

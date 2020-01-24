@@ -19,7 +19,7 @@
 //////////////
 
 // basic Includes
-#include "Arduino.h"
+#include <Arduino.h>
 #include <inttypes.h>
 
 /////////////
@@ -35,7 +35,7 @@
  * 
  * @brief Namespace for SMU-Communication-Backend related stuff.
  */
-namespace smu
+namespace sensor_management_unit
 {
     ///////////
 	// enums //
@@ -63,7 +63,7 @@ namespace smu
      * 
      * @brief Struct that represens a sensor reading.
      */
-    typedef struct SensorReading
+    struct SensorReading
     {
         float values[4];
 

@@ -6,9 +6,40 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+sensor_management_unit	KEYWORD1
+SensorModel	KEYWORD1
+SensorReading	KEYWORD1
+SensorMapping	KEYWORD1
+SMU	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
+values	KEYWORD2
+status	KEYWORD2
+
+sensorModel KEYWORD2
+sensorPort  KEYWORD2
+sensorNoOnSMU   KEYWORD2
+
+initSensor	KEYWORD2
+setSensorActivationStatus	KEYWORD2
+getSensorActivationStatus	KEYWORD2
+getSensorReadings	KEYWORD2
+manUpdateSensorRadings	KEYWORD2
+
+setSensorAutoupdateActivationStatus	KEYWORD2
+
+getSMUComBackendVersion	KEYWORD2
+getSMUFirmwareVersion	KEYWORD2
+
+getSMULastComError	KEYWORD2
+getSUMLastSystemError	KEYWORD2
+
+ping	KEYWORD2
+
+getVersion	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
@@ -18,3 +49,6 @@
 # Constants (LITERAL1)
 #######################################
 
+SENSOR_ERROR	LITERAL1
+NO_SENSOR	LITERAL1
+SRF08	LITERAL1
